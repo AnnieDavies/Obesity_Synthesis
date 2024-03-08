@@ -1,0 +1,71 @@
+model{
+  for(i in 1:N){
+       
+    #multivariate normal: yi ~ N(deltai, Vi)
+    y[yind[i]:yend[i]] ~ dmnorm.vcov( delta[yind[i]:yend[i]], V[i, 1:dim[i], 1:dim[i]] )
+    
+    #define the RE covariance matrix in terms of tau
+    Sigma[i, 1:dim[i], 1:dim[i]] <- (tau^2)*S[i, 1:dim[i], 1:dim[i]]
+                  
+    #multivariate normal (RE): deltai ~ N(thetai, Sigmai)
+    delta[yind[i]:yend[i]] ~  dmnorm.vcov( theta[yind[i]:yend[i]], Sigma[i, 1:dim[i], 1:dim[i]] )
+    
+    #Now define theta
+    for(t in 1:numFU[i]){
+      for(k in 1:numcont[i]){        
+        #terms for both active and control comparison (x & J)----------
+        #NB: x & J are defined as the difference between k and ref for active trials
+        #x (interventions)
+        sum_x[i,t,k] <- inprod(beta, x[i,k, ])
+        
+   	#J (interactions)
+        sum_J[i,t,k] <- inprod(eta, J[i,t,k, ])
+        
+        #control comparison only terms (alpha, z, w)--------------
+        sum_z[i,t,k] <- inprod(gamma, z[i, ])
+        
+        #w (FU time)
+        sum_w[i,t,k] <- inprod(phi, w[i,t, ])
+        
+	#ref_arm is an indicator. control = 1, active = 0
+	#therefore active models only have the first two terms
+        theta[tind[i,t,k]] <- sum_x[i,t,k] + sum_J[i,t,k] + ref_arm[i]*(alpha + sum_z[i,t,k] + sum_w[i,t,k])
+        
+      }#end sum over k
+    }#end sum over t
+  
+  }#end sum over i
+  
+  ### Define priors on non SVSS variables----------------------------------------------------
+  #tau (uniformative)
+  tau ~ dunif(0, 5)  
+  
+  #alpha ~ N(0, 100^2) (uniformative)
+  alpha ~ dnorm(0, 0.0001) 
+
+  #beta ~ N(0, 100^2) (uniformative)
+  for(j in 1:n){ beta[j] ~ dnorm(0, 0.0001) } 
+
+  #gamma ~ N(0, 100^2) (uniformative)
+  for(j in 1:p){ gamma[j] ~ dnorm(0, 0.0001) } 
+  
+  #phi ~ N(0, 100^2) (uniformative)
+  for(j in 1:q){ phi[j] ~ dnorm(0, 0.0001) }
+
+  ## SVSS-------------------------------------------------------------------------------------
+  ## interactions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #define vector of probabilities for I_eta=1 as data = peta
+  #store Ietas so we know how often covariates were selected
+  for(j in 1:l){
+    Ieta[j] ~ dbern(peta[j]) #0 or 1
+    eta[j] ~ dnorm(0, precI[Ieta[j]+1]) #if I=0 use precI[1], if I=1 use precI[2]   
+  }
+ 
+  ## use same two distributions for beta and eta (just different probabilities)
+  zeta ~ dnorm(0,1000)I(0,) #N(0,10^-3)
+  g <- 10 #large number (g^2=100)
+
+  precI[1] <- pow(zeta, -2) #small variance = large precision (if I = 0)
+  precI[2] <- pow(zeta*g, -2) #small var * large number = smaller precision (if I=1)
+  
+}

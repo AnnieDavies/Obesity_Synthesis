@@ -1,0 +1,59 @@
+model{
+  for(i in 1:N){
+       
+    #multivariate normal: yi ~ N(deltai, Vi)
+    y[yind[i]:yend[i]] ~ dmnorm.vcov( delta[yind[i]:yend[i]], V[i, 1:dim[i], 1:dim[i]] )
+    
+    #define the RE covariance matrix in terms of tau
+    Sigma[i, 1:dim[i], 1:dim[i]] <- (tau^2)*S[i, 1:dim[i], 1:dim[i]]
+                  
+    #multivariate normal (RE): deltai ~ N(thetai, Sigmai)
+    delta[yind[i]:yend[i]] ~  dmnorm.vcov( theta[yind[i]:yend[i]], Sigma[i, 1:dim[i], 1:dim[i]] )
+    
+    #Now define theta
+    for(t in 1:numFU[i]){
+      for(k in 1:numcont[i]){        
+        #terms for both active and control comparison (x & J)----------
+        #NB: x & J are defined as the difference between k and ref for active trials
+        #x (interventions)
+        sum_x[i,t,k] <- inprod(beta, x[i,k, ])
+        
+   	#J (interactions)
+        sum_J[i,t,k] <- inprod(eta, J[i,t,k, ])
+        
+        #control comparison only terms (alpha, z, w)--------------
+        sum_z[i,t,k] <- inprod(gamma, z[i, ])
+        
+        #w (FU time)
+        sum_w[i,t,k] <- inprod(phi, w[i,t, ])
+        
+	#ref_arm is an indicator. control = 1, active = 0
+	#therefore active models only have the first two terms
+        theta[tind[i,t,k]] <- sum_x[i,t,k] + sum_J[i,t,k] + ref_arm[i]*(alpha + sum_z[i,t,k] + sum_w[i,t,k])
+        
+      }#end sum over k
+    }#end sum over t
+  
+  }#end sum over i
+  
+  ### Define priors----------------------------------------------------
+  #tau (uniformative)
+  tau ~ dunif(0, 5)  
+  
+  #alpha ~ N(0, 100^2) (uniformative)
+  alpha ~ dnorm(0, 0.0001) 
+
+  #beta ~ N(0, 100^2) (uniformative)
+  for(j in 1:n){ beta[j] ~ dnorm(0, 0.0001) } 
+
+  #gamma ~ N(0, 100^2) (uniformative)
+  for(j in 1:p){ gamma[j] ~ dnorm(0, 0.0001) } 
+  
+  #phi ~ N(0, 100^2) (uniformative)
+  for(j in 1:q){ phi[j] ~ dnorm(0, 0.0001) }
+
+  ## interactions
+  #eta ~ N(0, 100^2) (uniformative)
+  for(j in 1:l){ eta[j] ~ dnorm(0, 0.0001) }
+  
+}
