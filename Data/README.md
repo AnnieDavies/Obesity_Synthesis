@@ -39,3 +39,11 @@ The columns in these files are defined as follows:
 - chart_ref: does the trial report an LMS reference chart?
 - chart: which LMS reference chart to use
 
+## Intervention level covariates
+The file InterventionLevelCovariates.xlsx contains each arm of each trial coded against the intervention coding scheme.
+
+## Study level covariates
+The files 5-11_StudyLevelCovariates.xlsx and 12-18_StudyLevelCovariates.xlsx contain the study level covariates for each age group.
+
+## Risk of bias
+The files 5-11_ROBData.xlsx and 12-18_ROBData.xlsx contain the risk of bias assessments for each outcome in each age group.
