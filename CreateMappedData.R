@@ -18,8 +18,8 @@ data_path <- "~\\Data\\"
 chart_path <- "~\\Charts\\"
 
 #read in outcome data 
-df_1218 <- read_excel(paste(data_path, "12-18_Data.xlsx", sep=""))
-df_511 <- read_excel(paste(data_path, "5-11_Data.xlsx", sep="")) 
+df_1218 <- read_excel(paste(data_path, "12-18_OutcomeData.xlsx", sep="")) ## 28/09/26 fixed typo Data -> OutcomeData
+df_511 <- read_excel(paste(data_path, "5-11_OutcomeData.xlsx", sep="")) ## 28/09/26 fixed typo Data -> OutcomeData
 #combine age groups
 df_1218$age<-"12-18"
 df_511$age<-"5-11"
@@ -82,7 +82,7 @@ save.image(file = "MappedData.RData") #can read back in to reset data to this po
 
 #Restructure mapped data to match original data----------------
 p.cdf <- edit_dfmap(p.cdf)
-p.samp <- edit_dfmap(p.samp)
+#p.samp <- edit_dfmap(p.samp) ## 28/09/26 removed reference to p.samp (a previous mapping method no longer used in main analysis)
 b.samp <- edit_dfmap(b.samp)
 
 
@@ -105,25 +105,25 @@ miss_studies <- check_missing(df) #all necessary data for covariances
 #Mapped data:-----------------------------------------------
 #calculate contrast level data (MD and SE)
 p.cdf <- calc_MD(p.cdf, rho, not_cov, alt_cov)
-p.samp <- calc_MD(p.samp, rho, not_cov, alt_cov)
+#p.samp <- calc_MD(p.samp, rho, not_cov, alt_cov)  ## 28/09/26 removed reference to p.samp (a previous mapping method no longer used in main analysis)
 b.samp <- calc_MD(b.samp, rho, not_cov, alt_cov)
 
 #adjust for clustering
 p.cdf <- adj_cluster(p.cdf, icc)
-p.samp <- adj_cluster(p.samp, icc)
+#p.samp <- adj_cluster(p.samp, icc)  ## 28/09/26 removed reference to p.samp (a previous mapping method no longer used in main analysis)
 b.samp <- adj_cluster(b.samp, icc)
 
 #define number of arms and number of FU times
 p.cdf <- count_arm_FU(p.cdf)
-p.samp <- count_arm_FU(p.samp)
+#p.samp <- count_arm_FU(p.samp)  ## 28/09/26 fixed typo: removed reference to p.samp (a previous mapping method no longer used in main analysis)
 b.samp <- count_arm_FU(b.samp)
 
 #identify any missing data 
 miss_studies.p.cdf <- check_missing(p.cdf)#all necessary data for covariances
-miss_studies.p.samp <- check_missing(p.samp)#all necessary data for covariances
+#miss_studies.p.samp <- check_missing(p.samp)#all necessary data for covariances  ## 28/09/26 removed reference to p.samp (a previous mapping method no longer used in main analysis)
 miss_studies.b.samp <- check_missing(b.samp)#all necessary data for covariances
 
-rm(miss_studies, miss_studies.p.cdf, miss_studies.p.samp, miss_studies.b.samp)
+rm(miss_studies, miss_studies.p.cdf, miss_studies.b.samp)  ## 28/09/26 removed reference to p.samp (a previous mapping method no longer used in main analysis)
 
 #Subset data by outcome/mapping status
 #Reported data:------------------------------------
@@ -141,7 +141,7 @@ df_main <- subset(df, measure=="BMI-z" | measure =="BMI-z from proportion")
 df_main_samp_cdf <- do.call("rbind", list(df_main, b.samp, p.cdf)) 
 
 #create data sets for sensitvity analysis------------------------
-#zBMI & mapped percenbtile only
+#zBMI & mapped percentile only
 df_z_p <- do.call("rbind", list(df_z, p.cdf))
 
 save.image("FinalMappedData.RData")
